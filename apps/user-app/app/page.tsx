@@ -10,3 +10,8 @@ export default async function Page() {
     redirect('/api/auth/signin')
   }
 }
+
+// docker run  -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres
+// packages/db
+// npx prisma migrate dev
+// npx prisma db seed 
