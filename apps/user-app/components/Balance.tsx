@@ -1,11 +1,16 @@
 "use client";
 
-import { useBalance } from "@repo/store/balance";
+// import { useBalance } from "@repo/store/balance";
 
 function Balance() {
-	const value = useBalance();
-    console.log(value)
-	return <p>The current balance is {value}</p>;
+  // const value = useBalance();
+  const value = { balance: 0 }; // temporary placeholder
+  
+  return (
+    <div>
+      {/* Your balance component JSX */}
+    </div>
+  );
 }
 
 export default Balance;

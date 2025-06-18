@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: paytm-postgres
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - paytm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      dockerfile: packages/db/Dockerfile
+    container_name: paytm-migrate
+    environment:
+      DATABASE_URL: postgresql://postgres:mysecretpassword@postgres:5432/postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - paytm-network
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        sleep 5 &&
+        echo 'Resetting database...' &&
+        npx prisma migrate reset --force &&
+        echo 'Database reset complete!' &&
+        echo 'Seeding database...' &&
+        npx prisma db seed &&
+        echo 'Database setup complete!'
+      "
+
+  user-app:
+    build:
+      context: .
+      dockerfile: apps/user-app/Dockerfile
+    container_name: paytm-user-app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:mysecretpassword@postgres:5432/postgres
+      NEXTAUTH_SECRET: your-secret-key
+      NEXTAUTH_URL: http://localhost:3000
+      JWT_SECRET: mysecret
+    depends_on:
+      - migrate
+    networks:
+      - paytm-network
+    restart: unless-stopped
+
+  bank-webhook:
+    build:
+      context: .
+      dockerfile: apps/bank-webhook/Dockerfile
+    container_name: paytm-bank-webhook
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:mysecretpassword@postgres:5432/postgres
+      PORT: 3001
+    depends_on:
+      - migrate
+    networks:
+      - paytm-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  paytm-network:
+    driver: bridge
