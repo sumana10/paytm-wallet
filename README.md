@@ -5,72 +5,82 @@
 ### Option A: Docker (Recommended)
 
 1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/sumana10/paytm-wallet.git
-   cd paytm-wallet
-   ```
 
-2. **Run docker-compose file**
-   ```bash
-   docker-compose up --build
-   ```
+```bash
+git clone https://github.com/sumana10/paytm-wallet.git
+cd paytm-wallet
+```
 
-3. **Test the Login**
-   Use the following credentials to log in:
-   - **Phone:** 1111111111
-   - **Password:** alice
+2. **Run docker-compose**
 
-### Option B: Manual Setup
+```bash
+docker-compose up --build
+```
+
+3. **Access the Apps in Browser**
+
+* **User App:** `http://localhost:3000`
+
+* **Bank Webhook:** `http://localhost:3002` 
+
+
+---
+
+### Option B: Manual Setup (Using Neon DB)
 
 1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/sumana10/paytm-wallet.git
-   ```
+
+```bash
+git clone https://github.com/sumana10/paytm-wallet.git
+cd paytm-wallet
+```
 
 2. **Install Dependencies**
-   Navigate to the root directory and run:
-   ```bash
-   npm install
-   ```
 
-3. **Run PostgreSQL**
-   You can either run PostgreSQL locally or use a cloud service like [Neon](https://neon.tech). To run PostgreSQL locally with Docker, use:
-   ```bash
-   docker run -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres
-   ```
+```bash
+npm install
+```
 
-4. **Configure Environment Variables**
-   - Navigate to both `apps/user-app` and `packages/db` directories.
-   - Copy `.env.example` files to `.env` in each directory.
-   - Update the `.env` files with the correct database URL.
+3. **Configure Environment Variables**
 
-5. **Set Up the Database**
-   In the `packages/db` directory, run:
-   ```bash
-   npx prisma migrate dev
-   npx prisma db seed
-   ```
+* Go to `apps/user-app` and `packages/db`.
+* Copy `.env.example` to `.env` in each directory:
 
-6. **Start the Application**
-   Navigate to the `apps/user-app` directory and run:
-   ```bash
-   npm run dev
-   ```
+```bash
+cp .env.example .env
+```
 
-7. **Run the Bank Webhook**
-   Navigate to the `bank-webhook` directory and start the webhook:
-   ```bash
-   node dist/index.js
-   ```
+* Update `.env` files with your Neon DB connection string:
 
-8. **Import the Postman Collection**
-   - Open Postman.
-   - Click on "Import" and select the Postman collection file provided in the repository.
-   - This will set up the necessary API endpoints for testing.
+```
+DATABASE_URL=postgresql://username:password@your-neon-db-host:5432/dbname
+```
 
-9. **Test the Login**
-   Use the following credentials to log in:
-   - **Phone:** 1111111111
-   - **Password:** alice
-   
-   (Refer to `seed.ts` for these credentials.)
+4. **Setup Database**
+
+```bash
+npm run db:generate    # Generates Prisma client
+npm run db:migrate     # Applies schema migrations
+```
+
+
+5. **Start the Application (Development Mode)**
+
+```bash
+npm run dev
+```
+
+* Starts the app with hot-reloading.
+* **User App:** `http://localhost:3000`
+* **Bank Webhook :** `http://localhost:3002`
+
+6. **Production Build**
+
+```bash
+npm run build
+npm run start
+```
+
+* `npm run build` compiles the app for production.
+* `npm run start` runs the compiled production build.
+

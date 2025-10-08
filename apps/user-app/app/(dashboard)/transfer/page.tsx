@@ -6,7 +6,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../lib/auth";
 
 async function getBalance() {
+
     const session = await getServerSession(authOptions);
+
     const balance = await prisma.balance.findFirst({
         where: {
             userId: Number(session?.user?.id)
@@ -17,15 +19,23 @@ async function getBalance() {
         locked: balance?.locked || 0
     }
 }
-
+type OnRampTransactionType = {
+    startTime: Date;
+    amount: number;
+    status: "Success" | "Pending" | "Failed" | "Failure" | "Processing";
+    provider: string;
+  };
+  
 async function getOnRampTransactions() {
+
     const session = await getServerSession(authOptions);
-    const txns = await prisma.onRampTransaction.findMany({
+
+    const txns: OnRampTransactionType[]= await prisma.onRampTransaction.findMany({
         where: {
             userId: Number(session?.user?.id)
         }
     });
-    return txns.map(t => ({
+    return txns.map((t: OnRampTransactionType) => ({
         time: t.startTime,
         amount: t.amount,
         status: t.status,
